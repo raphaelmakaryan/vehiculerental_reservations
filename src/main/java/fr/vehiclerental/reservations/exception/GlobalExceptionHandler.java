@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ClientNotFindException.class)
-    public ResponseEntity<ErrorEntity> clientNotFoundHandler(ClientNotFindException exception) {
+    @ExceptionHandler(ReservationNotFindException.class)
+    public ResponseEntity<ErrorEntity> clientNotFoundHandler(ReservationNotFindException exception) {
         ErrorEntity error = new ErrorEntity(LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
         return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(error);
     }

@@ -1,11 +1,11 @@
 package fr.vehiclerental.reservations.controller;
 
-import fr.vehiclerental.reservations.entity.Client;
-import fr.vehiclerental.reservations.entity.ClientDTO;
+import fr.vehiclerental.reservations.entity.Reservations;
+import fr.vehiclerental.reservations.entity.ReservationsDTO;
 import fr.vehiclerental.reservations.exception.BadRequestException;
-import fr.vehiclerental.reservations.exception.ClientNotFindException;
-import fr.vehiclerental.reservations.service.ClientDao;
-import fr.vehiclerental.reservations.service.ClientService;
+import fr.vehiclerental.reservations.exception.ReservationNotFindException;
+import fr.vehiclerental.reservations.service.ReservationsDao;
+import fr.vehiclerental.reservations.service.ReservationsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -16,7 +16,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,13 +24,14 @@ import java.util.stream.Collectors;
 
 @RestController
 public class WebAppController {
-    private final ClientService clientService;
-    private final ClientDao clientDao;
+    private final ReservationsService reservationsService;
+    private final ReservationsDao reservationsDao;
 
-    public WebAppController(ClientService clientService, ClientDao clientDao) {
-        this.clientService = clientService;
-        this.clientDao = clientDao;
+    public WebAppController(ReservationsService reservationsService, ReservationsDao reservationsDao) {
+        this.reservationsService = reservationsService;
+        this.reservationsDao = reservationsDao;
     }
+
 
     @Operation(summary = "Page d'accueil")
     @RequestMapping("/")
@@ -41,8 +41,8 @@ public class WebAppController {
 
 
     @Operation(
-            summary = "Voir tous les clients de la base de données ",
-            description = "Requête pour la récupération de tous les clients de la base de données "
+            summary = "Voir toute les reservations de la base de données ",
+            description = "Requête pour la récupération de toute les reservations de la base de données "
     )
     @ApiResponses(value = {
             @ApiResponse(
@@ -50,7 +50,7 @@ public class WebAppController {
                     description = "Opération réussi",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ClientDTO.class)
+                            schema = @Schema(implementation = Reservations.class)
                     )
             ),
             @ApiResponse(
@@ -64,29 +64,29 @@ public class WebAppController {
                     )
             )
     })
-    @GetMapping("/clients")
-    public List<ClientDTO> clientsJPA() {
-        return clientDao.findAll()
+    @GetMapping("/reservations")
+    public List<ReservationsDTO> reservations() {
+        return reservationsDao.findAll()
                 .stream()
-                .map(c -> new ClientDTO(
+                .map(c -> new ReservationsDTO(
                         c.getId(),
-                        c.getFirst_name(),
-                        c.getLast_name(),
-                        c.getNumberLicense(),
-                        c.getBirthday(),
-                        c.getObtaining_license()
-                ))
+                        c.getIdClient(),
+                        c.getIdVehicule(),
+                        c.getStartReservation(),
+                        c.getEndReservation(),
+                        c.getEstimatedKm()))
                 .collect(Collectors.toList());
     }
 
-    @Operation(summary = "Voir un client spécifique de la base de données", description = "Requête pour la récupération d'un client de la base de données")
+
+    @Operation(summary = "Voir une reservation spécifique de la base de données", description = "Requête pour la récupération d'une reservation de la base de données")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
                     description = "Opération réussi",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ClientDTO.class)
+                            schema = @Schema(implementation = Reservations.class)
                     )
             ),
             @ApiResponse(
@@ -100,26 +100,26 @@ public class WebAppController {
                     )
             )
     })
-    @RequestMapping(path = "/clients/{id}", method = RequestMethod.GET)
-    public List<ClientDTO> getClients(@Parameter(description = "Identifiant du compte du client", required = true) @PathVariable(value = "id") int id) {
+    @RequestMapping(path = "/reservations/{id}", method = RequestMethod.GET)
+    public List<ReservationsDTO> getReservations(@Parameter(description = "Identifiant de la reservation", required = true) @PathVariable(value = "id") int id) {
         try {
-            return clientDao.findById(id)
+            return reservationsDao.findById(id)
                     .stream()
-                    .map(c -> new ClientDTO(
+                    .map(c -> new ReservationsDTO(
                             c.getId(),
-                            c.getFirst_name(),
-                            c.getLast_name(),
-                            c.getNumberLicense(),
-                            c.getBirthday(),
-                            c.getObtaining_license()
-                    )).collect(Collectors.toList());
+                            c.getIdClient(),
+                            c.getIdVehicule(),
+                            c.getStartReservation(),
+                            c.getEndReservation(),
+                            c.getEstimatedKm()))
+                    .collect(Collectors.toList());
         } catch (Exception exception) {
             throw new RuntimeException(exception.getMessage());
         }
     }
 
 
-    @Operation(summary = "Crée un nouveau client dans la base de données", description = "Requête pour crée/ajouter client dans la base de données")
+    @Operation(summary = "Crée une nouvelle reservation dans la base de données", description = "Requête pour crée/ajouter une reservation dans la base de données")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -129,7 +129,7 @@ public class WebAppController {
                             examples = @ExampleObject(
                                     value = "{\n" +
                                             "    \"success\": true,\n" +
-                                            "    \"message\": \"Votre client a été ajoutée !\"\n" +
+                                            "    \"message\": \"Votre reservation a été ajoutée !\"\n" +
                                             "}"
                             )
                     )
@@ -140,47 +140,40 @@ public class WebAppController {
                     content = @Content(
                             mediaType = "application/json",
                             examples = {
-                                    @ExampleObject(name = "Erreur de license", value = "{\n" +
-                                            "    \"success\": false,\n" +
-                                            "    \"message\": \"Cet licenses existe deja !\"\n" +
-                                            "}"),
                                     @ExampleObject(name = "Erreur générale", value = "{\n" +
                                             "    \"success\": false,\n" +
-                                            "    \"message\": \"Votre client n'a pas été ajoutée !\"\n" +
+                                            "    \"message\": \"Votre reservation n'a pas été ajoutée !\"\n" +
                                             "}")
                             }
                     )
             )
     })
-    @RequestMapping(value = "/clients", method = RequestMethod.POST)
-    public ResponseEntity<Map<String, Object>> addClientPost() {
+    @RequestMapping(value = "/reservations", method = RequestMethod.POST)
+    public ResponseEntity<Map<String, Object>> addReservations() {
         try {
             Map<String, Object> response = new HashMap<>();
-            String codeAlpha = clientService.createCodeAlphanumeric();
-            String verifyLicense = "http://localhost:8081/licenses/" + codeAlpha;
-            //String verifyLicense = "http://localhost:9091/licenses/" + codeAlpha;
-            RestTemplate restTemplate = new RestTemplate();
-            boolean result = restTemplate.getForObject(verifyLicense, Boolean.class);
-            if (result) {
-                clientService.createClient(codeAlpha, clientDao);
-                response.put("success", true);
-                response.put("message", "Votre client a été ajoutée !");
-            } else {
-                response.put("success", false);
-                response.put("message", "Cet licenses existe deja !");
-            }
+            //RestTemplate restTemplate = new RestTemplate();
+            //boolean result = restTemplate.getForObject(verifyLicense, Boolean.class);
+            //if (result) {
+            //clientService.createClient(codeAlpha, clientDao);
+            response.put("success", true);
+            response.put("message", "Votre reservations a été ajoutée !");
+            //} else {
+            //  response.put("success", false);
+            //response.put("message", "Cet licenses existe deja !");
+            //}
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
-            response.put("message", "Votre client n'a pas été ajoutée !");
+            response.put("message", "Votre reservations n'a pas été ajoutée !");
             response.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
 
-    @Operation(summary = "Mettre à jour un client dans la base de données", description = "Requête pour mettre a jour un client dans la base de données ")
+    @Operation(summary = "Mettre à jour une reservation dans la base de données", description = "Requête pour mettre a jour une reservation dans la base de données ")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -190,7 +183,7 @@ public class WebAppController {
                             examples = @ExampleObject(
                                     value = "{\n" +
                                             "    \"success\": true,\n" +
-                                            "    \"message\": \"Votre client a été modifié !\"\n" +
+                                            "    \"message\": \"Votre reservation a été modifié !\"\n" +
                                             "}"
                             )
                     )
@@ -205,7 +198,7 @@ public class WebAppController {
                                             name = "Erreur générale",
                                             value = "{\n" +
                                                     "  \"localDateTime\": \"2025-11-03T08:25:00\",\n" +
-                                                    "  \"message\": \"Client not found with ID : 1\",\n" +
+                                                    "  \"message\": \"Reservation not found with ID : 1\",\n" +
                                                     "  \"status\": 404\n" +
                                                     "}"
                                     )
@@ -214,18 +207,18 @@ public class WebAppController {
                     )
             )
     })
-    @PutMapping("/clients/{id}")
-    public ResponseEntity<Map<String, Object>> editClient(@Parameter(description = "Identifiant du compte du client", required = true) @PathVariable(value = "id") int idUSer) {
+    @PutMapping("/reservations/{id}")
+    public ResponseEntity<Map<String, Object>> editReservations(@Parameter(description = "Identifiant de la reservation", required = true) @PathVariable(value = "id") int idUSer) {
         try {
-            List<Client> client = clientDao.findById(idUSer);
-            if (client == null || client.isEmpty()) {
-                throw new ClientNotFindException(idUSer);
+            List<Reservations> reservations = reservationsDao.findById(idUSer);
+            if (reservations == null || reservations.isEmpty()) {
+                throw new ReservationNotFindException(idUSer);
             } else {
-                client.get(0).setFirstName("Raphael");
-                clientDao.save(client.get(0));
+                //reservations.get(0).set("Raphael");
+                //clientDao.save(client.get(0));
                 Map<String, Object> response = new HashMap<>();
                 response.put("success", true);
-                response.put("message", "Votre client a été modifié !");
+                response.put("message", "Votre reservation a été modifié !");
                 return ResponseEntity.ok(response);
             }
         } catch (Exception e) {
@@ -233,7 +226,8 @@ public class WebAppController {
         }
     }
 
-    @Operation(summary = "Supprimer un client de la base de données", description = "Requête pour supprimer un client de la base de données")
+
+    @Operation(summary = "Supprimer une reservation de la base de données", description = "Requête pour supprimer une reservations de la base de données")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
@@ -243,7 +237,7 @@ public class WebAppController {
                             examples = @ExampleObject(
                                     value = "{\n" +
                                             "    \"success\": true,\n" +
-                                            "    \"message\": \"Votre client a été supprimé !\"\n" +
+                                            "    \"message\": \"Votre reservation a été supprimé !\"\n" +
                                             "}"
                             )
                     )
@@ -258,7 +252,7 @@ public class WebAppController {
                                             name = "Erreur générale",
                                             value = "{\n" +
                                                     "  \"localDateTime\": \"2025-11-03T08:25:00\",\n" +
-                                                    "  \"message\": \"Client not found with ID : 1 \",\n" +
+                                                    "  \"message\": \"Reservation not found with ID : 1 \",\n" +
                                                     "  \"status\": 404\n" +
                                                     "}"
                                     )
@@ -267,16 +261,16 @@ public class WebAppController {
                     )
             )
     })
-    @DeleteMapping("/clients/{id}")
-    public ResponseEntity<Map<String, Object>> deleteClient(@Parameter(description = "Identifiant du compte du client", required = true) @PathVariable(value = "id") int idUSer) {
-        List<Client> client = clientDao.findById(idUSer);
-        if (client == null || client.isEmpty()) {
-            throw new ClientNotFindException(idUSer);
+    @DeleteMapping("/reservations/{id}")
+    public ResponseEntity<Map<String, Object>> deleteReservations(@Parameter(description = "Identifiant de la reservation", required = true) @PathVariable(value = "id") int idUSer) {
+        List<Reservations> reservations = reservationsDao.findById(idUSer);
+        if (reservations == null || reservations.isEmpty()) {
+            throw new ReservationNotFindException(idUSer);
         } else {
-            clientDao.delete(client.get(0));
+            //lientDao.delete(client.get(0));
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("message", "Votre client a été supprimé !");
+            response.put("message", "Votre reservations a été supprimé !");
             return ResponseEntity.ok(response);
         }
     }
