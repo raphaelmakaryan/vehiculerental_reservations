@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.lang.reflect.Array;
+//import org.json.JSONArray;
+//import org.json.JSONObject;
 import java.time.*;
 
 import java.time.LocalDate;
@@ -15,19 +17,19 @@ public class ReservationsService {
 
     public Object requestClient(int idUser) {
         RestTemplate restTemplate = new RestTemplate();
-        String userRequest = "http://localhost:8081/client/" + idUser;
-        Array response = restTemplate.getForObject(userRequest, Array.class);
-        System.out.println(response.toString());
-        /*
+        String userRequest = "http://localhost:8081/clients/" + idUser;
         Object response = restTemplate.getForObject(userRequest, Object.class);
         if (response != null) {
             return response;
         } else {
             return new Object();
         }
+    }
 
-         */
-        return new Object();
+    public Object translateDate(Object data) {
+        //JSONArray jsonArray = new JSONArray(data.toString());
+        //JSONObject jsonObject = jsonArray.getJSONObject(0);
+        //return jsonObject;
     }
 
     public boolean canReserve(LocalDate birthdayUser, String licenseNumber) {

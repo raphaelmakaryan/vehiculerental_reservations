@@ -155,10 +155,10 @@ public class WebAppController {
     public ResponseEntity<Map<String, Object>> addReservations(@Validated @RequestBody RequiredReservation informations) {
         try {
             Map<String, Object> response = new HashMap<>();
-            Object client = reservationsService.requestClient(informations.getIdClient());
+            Object clientVerification = reservationsService.requestClient(informations.getIdClient());
             // si il existe bien
-            if (!ObjectUtils.isEmpty(client)) {
-                System.out.println(client);
+            if (!ObjectUtils.isEmpty(clientVerification)) {
+                Object translateData = reservationsService.translateDate(clientVerification);
                 //boolean canReserve = reservationsService.canReserve();
                 /*
                 Object vehicule = reservationsService.requestVehicle(informations.getIdVehicule());

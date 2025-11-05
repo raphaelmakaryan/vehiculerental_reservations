@@ -4,7 +4,6 @@ import java.time.LocalDate;
 
 public class RequiredReservation {
     private int idClient;
-    private String licenseNumber;
     private int idVehicule;
     private LocalDate startReservation;
     private LocalDate endReservation;
@@ -13,12 +12,11 @@ public class RequiredReservation {
     public RequiredReservation() {
     }
 
-    public RequiredReservation(int idClient, String licenseNumber, int idVehicule,
+    public RequiredReservation(int idClient, int idVehicule,
                                LocalDate startReservation,
                                LocalDate endReservation,
                                int estimatedKm) {
         this.idClient = idClient;
-        this.licenseNumber = licenseNumber;
         this.idVehicule = idVehicule;
         this.startReservation = startReservation;
         this.endReservation = endReservation;
@@ -31,14 +29,6 @@ public class RequiredReservation {
 
     public void setIdClient(int idClient) {
         this.idClient = idClient;
-    }
-
-    public String getLicenseNumber() {
-        return licenseNumber;
-    }
-
-    public void setLicenseNumber(String licenseNumber) {
-        this.licenseNumber = licenseNumber;
     }
 
     public int getEstimatedKm() {
