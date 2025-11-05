@@ -1,5 +1,6 @@
 package fr.vehiclerental.reservations.controller;
 
+import fr.vehiclerental.reservations.entity.RequiredReservation;
 import fr.vehiclerental.reservations.entity.Reservations;
 import fr.vehiclerental.reservations.entity.ReservationsDTO;
 import fr.vehiclerental.reservations.exception.BadRequestException;
@@ -15,7 +16,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -149,19 +152,31 @@ public class WebAppController {
             )
     })
     @RequestMapping(value = "/reservations", method = RequestMethod.POST)
-    public ResponseEntity<Map<String, Object>> addReservations() {
+    public ResponseEntity<Map<String, Object>> addReservations(@Validated @RequestBody RequiredReservation informations) {
         try {
             Map<String, Object> response = new HashMap<>();
-            //RestTemplate restTemplate = new RestTemplate();
-            //boolean result = restTemplate.getForObject(verifyLicense, Boolean.class);
-            //if (result) {
-            //clientService.createClient(codeAlpha, clientDao);
-            response.put("success", true);
-            response.put("message", "Votre reservations a été ajoutée !");
-            //} else {
-            //  response.put("success", false);
-            //response.put("message", "Cet licenses existe deja !");
-            //}
+            Object client = reservationsService.requestClient(informations.getIdClient());
+            // si il existe bien
+            if (!ObjectUtils.isEmpty(client)) {
+                System.out.println(client);
+                //boolean canReserve = reservationsService.canReserve();
+                /*
+                Object vehicule = reservationsService.requestVehicle(informations.getIdVehicule());
+                if (!ObjectUtils.isEmpty(vehicule)) {
+                    //RestTemplate restTemplate = new RestTemplate();
+                    //boolean result = restTemplate.getForObject(verifyLicense, Boolean.class);
+                    //if (result) {
+                    //clientService.createClient(codeAlpha, clientDao);
+                    response.put("success", true);
+                    response.put("message", "Votre reservations a été ajoutée !");
+                    //} else {
+                    //  response.put("success", false);
+                    //response.put("message", "Cet licenses existe deja !");
+                    //}
+                }
+                 */
+            }
+            response.put("test", true);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, Object> response = new HashMap<>();

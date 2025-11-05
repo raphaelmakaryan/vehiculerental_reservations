@@ -2,10 +2,69 @@ package fr.vehiclerental.reservations.service;
 
 import fr.vehiclerental.reservations.entity.Reservations;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.lang.reflect.Array;
+import java.time.*;
+
+import java.time.LocalDate;
 
 @Service
 
 public class ReservationsService {
+
+    public Object requestClient(int idUser) {
+        RestTemplate restTemplate = new RestTemplate();
+        String userRequest = "http://localhost:8081/client/" + idUser;
+        Array response = restTemplate.getForObject(userRequest, Array.class);
+        System.out.println(response.toString());
+        /*
+        Object response = restTemplate.getForObject(userRequest, Object.class);
+        if (response != null) {
+            return response;
+        } else {
+            return new Object();
+        }
+
+         */
+        return new Object();
+    }
+
+    public boolean canReserve(LocalDate birthdayUser, String licenseNumber) {
+        if ((LocalDate.now().getYear() - birthdayUser.getYear()) >= 18 && !licenseNumber.equals("")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public Object requestVehicle(int idVehicle) {
+        RestTemplate restTemplate = new RestTemplate();
+        String userRequest = "http://localhost:8082/vehicles/" + idVehicle;
+        Object response = restTemplate.getForObject(userRequest, Object.class);
+        if (response != null) {
+            return response;
+        } else {
+            return new Object();
+        }
+    }
+
+
+    public boolean requestYearClient(LocalDate yearClient, int horsePower) {
+        return true;
+        /*
+        RestTemplate restTemplate = new RestTemplate();
+        String userRequest = "http://localhost:8082/vehicles/" + idVehicle;
+        Object response = restTemplate.getForObject(userRequest, Object.class);
+        if (response != null) {
+            return response;
+        } else {
+            return new Object();
+        }
+         */
+    }
+
+
 
     /*
     public void createClient(String codeAlpha, ClientDao clientDao) {
