@@ -117,15 +117,14 @@ public class WebAppController {
 
     }))})
     @PutMapping("/reservations/{id}")
-    public ResponseEntity<Map<String, Object>> editReservations(@Parameter(description = "Identifiant de la reservation", required = true) @PathVariable(value = "id") int idUSer) {
+    public ResponseEntity<Map<String, Object>> editReservations(@Parameter(description = "Identifiant de la reservation", required = true) @PathVariable(value = "id") int idUSer, @Validated @RequestBody Reservations reservationsRequest) {
         try {
             List<Reservations> reservations = reservationsDao.findById(idUSer);
             if (reservations == null || reservations.isEmpty()) {
                 throw new ReservationNotFindException(idUSer);
             } else {
-                //reservations.get(0).set("Raphael");
-                //clientDao.save(client.get(0));
                 Map<String, Object> response = new HashMap<>();
+                reservationsService.editReservation(reservations.getFirst(), reservationsRequest, reservationsDao);
                 response.put("success", true);
                 response.put("message", "Votre reservation a été modifié !");
                 return ResponseEntity.ok(response);
@@ -146,7 +145,7 @@ public class WebAppController {
         if (reservations == null || reservations.isEmpty()) {
             throw new ReservationNotFindException(idUSer);
         } else {
-            //lientDao.delete(client.get(0));
+            reservationsDao.delete(reservations.getFirst());
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Votre reservations a été supprimé !");

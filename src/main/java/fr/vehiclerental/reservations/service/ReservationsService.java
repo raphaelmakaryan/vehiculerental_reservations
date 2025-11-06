@@ -165,4 +165,22 @@ public class ReservationsService {
         newReservation.setPriceReservation(priceFinal);
         reservationsDao.save(newReservation);
     }
+
+
+    /**
+     * Methode pour modifier une reservation
+     *
+     * @param findindReservation     Information de la reservation
+     * @param reservationBodyRequest Informations issue de reservation récuperer de la requete
+     * @param reservationsDao        Class DAO pour faire les requetes a la bdd
+     */
+    public void editReservation(Reservations findindReservation, Reservations reservationBodyRequest, ReservationsDao reservationsDao) {
+        findindReservation.setIdClient(reservationBodyRequest.getIdClient());
+        findindReservation.setIdVehicule(reservationBodyRequest.getIdVehicule());
+        findindReservation.setStartReservation(reservationBodyRequest.getStartReservation());
+        findindReservation.setEndReservation(reservationBodyRequest.getEndReservation());
+        findindReservation.setEstimatedKm(reservationBodyRequest.getEstimatedKm());
+        findindReservation.setPriceReservation(reservationBodyRequest.getPriceReservation());
+        reservationsDao.save(findindReservation);
+    }
 }

@@ -28,43 +28,43 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ErrorEntity> clientNotFoundHandler(ClientNotFindException exception) {
+    @ExceptionHandler(ClientNotFindException.class)
+    public ResponseEntity<ErrorEntity> clientNotFindException(ClientNotFindException exception) {
         ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
         return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
     }
 
-    @ExceptionHandler(RuntimeException.class)
+    @ExceptionHandler(ClientNotLegalAgeOrLicense.class)
     public ResponseEntity<ErrorEntity> clientNotAgeLegalOrLicense(ClientNotLegalAgeOrLicense exception) {
         ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
         return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
     }
 
-    @ExceptionHandler(RuntimeException.class)
+    @ExceptionHandler(ClientAlreadyReservation.class)
     public ResponseEntity<ErrorEntity> clientAlreadyReservation(ClientAlreadyReservation exception) {
         ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
         return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
     }
 
-    @ExceptionHandler(RuntimeException.class)
+    @ExceptionHandler(VehiculeNotFInd.class)
     public ResponseEntity<ErrorEntity> vehiculeNotFind(VehiculeNotFInd exception) {
         ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
         return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
     }
 
-    @ExceptionHandler(RuntimeException.class)
+    @ExceptionHandler(ClientAgeHorsepower.class)
     public ResponseEntity<ErrorEntity> clientAgeHorsepower(ClientAgeHorsepower exception) {
         ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
         return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
     }
 
-    @ExceptionHandler(RuntimeException.class)
+    @ExceptionHandler(VehiculeAlreadyReservation.class)
     public ResponseEntity<ErrorEntity> vehiculeAlreadyReservation(VehiculeAlreadyReservation exception) {
         ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
         return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
     }
 
-    @ExceptionHandler(RuntimeException.class)
+    @ExceptionHandler(VehicleTypeKnowName.class)
     public ResponseEntity<ErrorEntity> vehiculeNotType(VehicleTypeKnowName exception) {
         ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
         return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
