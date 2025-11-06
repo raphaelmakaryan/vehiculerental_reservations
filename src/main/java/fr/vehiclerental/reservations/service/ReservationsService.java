@@ -129,13 +129,22 @@ public class ReservationsService {
      * @return Vrai ou faux
      */
     public boolean verificationVehiculeReservation(VehicleDTO vehicle, RequiredReservation newReservation, ReservationsDao reservationsDao) {
-        List<Reservations> vehicleFocus = reservationsDao.findByIdVehicule(vehicle.getId());
-        if (vehicleFocus.isEmpty()) {
-            return true;
-        } else {
-            return false;
+        List<Reservations> vehicleBookings = reservationsDao.findByIdVehicule(vehicle.getId());
+        LocalDate startWant = newReservation.getStartReservation();
+        LocalDate endWant = newReservation.getEndReservation();
+        for (Reservations booking : vehicleBookings) {
+            LocalDate startBooked = booking.getStartReservation();
+            LocalDate endBooked = booking.getEndReservation();
+            boolean overlap =
+                    !startWant.isAfter(endBooked) &&  // startWant <= endBooked
+                            !endWant.isBefore(startBooked);   // endWant >= startBooked
+            if (overlap) {
+                return false; // réservation impossible
+            }
         }
+        return true;
     }
+
 
     /**
      * Methode pour crée une reservation

@@ -11,20 +11,62 @@ import java.time.LocalDateTime;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ReservationNotFindException.class)
-    public ResponseEntity<ErrorEntity> clientNotFoundHandler(ReservationNotFindException exception) {
-        ErrorEntity error = new ErrorEntity(LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
+    public ResponseEntity<ErrorEntity> reservationNotFoundHandler(ReservationNotFindException exception) {
+        ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
         return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(error);
     }
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorEntity> badRequestHandler(BadRequestException exception) {
-        ErrorEntity error = new ErrorEntity(LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
+        ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
         return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(error);
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorEntity> runtimeExceptionHandler(RuntimeException exception) {
-        ErrorEntity error = new ErrorEntity(LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
+        ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorEntity> clientNotFoundHandler(ClientNotFindException exception) {
+        ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorEntity> clientNotAgeLegalOrLicense(ClientNotLegalAgeOrLicense exception) {
+        ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorEntity> clientAlreadyReservation(ClientAlreadyReservation exception) {
+        ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorEntity> vehiculeNotFind(VehiculeNotFInd exception) {
+        ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorEntity> clientAgeHorsepower(ClientAgeHorsepower exception) {
+        ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorEntity> vehiculeAlreadyReservation(VehiculeAlreadyReservation exception) {
+        ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorEntity> vehiculeNotType(VehicleTypeKnowName exception) {
+        ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
         return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
     }
 }

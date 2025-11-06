@@ -1,8 +1,7 @@
 package fr.vehiclerental.reservations.controller;
 
 import fr.vehiclerental.reservations.entity.*;
-import fr.vehiclerental.reservations.exception.BadRequestException;
-import fr.vehiclerental.reservations.exception.ReservationNotFindException;
+import fr.vehiclerental.reservations.exception.*;
 import fr.vehiclerental.reservations.service.ReservationsDao;
 import fr.vehiclerental.reservations.service.ReservationsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -68,12 +67,12 @@ public class WebAppController {
             Map<String, Object> response = new HashMap<>();
             List<ClientDTO> clientVerification = reservationsService.requestClient(informations.getIdClient());
             if (!clientVerification.isEmpty()) {
-                ClientDTO client = clientVerification.get(0);
+                ClientDTO client = clientVerification.getFirst();
                 if (reservationsService.canReserve(client.getBirthday(), client.getNumberLicense())) {
                     if (reservationsService.clientHaveAReservation(client.getId(), reservationsDao)) {
                         List<VehicleDTO> vehiculeVerification = reservationsService.requestVehicle(informations.getIdVehicule());
                         if (!vehiculeVerification.isEmpty()) {
-                            VehicleDTO vehicle = vehiculeVerification.get(0);
+                            VehicleDTO vehicle = vehiculeVerification.getFirst();
                             if (reservationsService.requestYearClient(client.getBirthday(), vehicle.getHorsePower())) {
                                 if (reservationsService.verificationVehiculeReservation(vehicle, informations, reservationsDao)) {
                                     int priceFinal = reservationsService.calculePriceFinal(vehicle, informations);
@@ -82,32 +81,25 @@ public class WebAppController {
                                         response.put("success", true);
                                         response.put("message", "Votre reservations a été ajoutée !");
                                     } else {
-                                        response.put("success", false);
-                                        response.put("message", "La reservations ne peux pas etre ajouté !");
+                                        throw new VehicleTypeKnowName();
                                     }
                                 } else {
-                                    response.put("success", false);
-                                    response.put("message", "Le vehicule n'est pas disponible car il est deja reserver !");
+                                    throw new VehiculeAlreadyReservation();
                                 }
                             } else {
-                                response.put("success", false);
-                                response.put("message", "Le vehicule défini dans la requete n'est pas disponible selon l'age du client et les cheveaux du vehicule !");
+                                throw new ClientAgeHorsepower();
                             }
                         } else {
-                            response.put("success", false);
-                            response.put("message", "Le vehicule a l'id : " + informations.getIdVehicule() + " n'existe pas !");
+                            throw new VehiculeNotFInd(informations.getIdVehicule());
                         }
                     } else {
-                        response.put("success", false);
-                        response.put("message", "Le client a deja reservé un vehicule !");
+                        throw new ClientAlreadyReservation();
                     }
                 } else {
-                    response.put("success", false);
-                    response.put("message", "Le client n'a pas l'age lagale ou de permis valable !");
+                    throw new ClientNotLegalAgeOrLicense();
                 }
             } else {
-                response.put("success", false);
-                response.put("message", "Le client a l'id : " + informations.getIdClient() + " n'existe pas !");
+                throw new ClientNotFindException(informations.getIdClient());
             }
             return ResponseEntity.ok(response);
         } catch (Exception e) {
