@@ -69,4 +69,16 @@ public class GlobalExceptionHandler {
         ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
         return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
     }
+
+    @ExceptionHandler(ReservationNotAdd.class)
+    public ResponseEntity<ErrorEntity> reservatioNotAdd(ReservationNotAdd exception) {
+        ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.NOT_FOUND.value());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
+    }
+
+    @ExceptionHandler(ReservationAdd.class)
+    public ResponseEntity<ErrorEntity> reservationAdd(ReservationAdd exception) {
+        ErrorEntity error = new ErrorEntity(true, LocalDateTime.now(), exception.getMessage(), HttpStatus.FOUND.value());
+        return ResponseEntity.status(HttpStatus.OK.value()).body(error);
+    }
 }

@@ -2,6 +2,6 @@ package fr.vehiclerental.reservations.exception;
 
 public class ClientAlreadyReservation extends RuntimeException {
     public ClientAlreadyReservation() {
-        super("Le client a deja reservé un vehicule !");
+        super("Ce client dispose déjà d'une réservation en cours");
     }
 }

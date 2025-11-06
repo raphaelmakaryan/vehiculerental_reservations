@@ -11,9 +11,9 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -40,7 +40,7 @@ public class WebAppController {
 
 
     @Operation(summary = "Voir toute les reservations de la base de données ", description = "Requête pour la récupération de toute les reservations de la base de données ")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Opération réussi", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Reservations.class))), @ApiResponse(responseCode = "405", description = "Échec de l'opération ", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{\"error\": \"Saisie invalide\"}")))})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Opération réussi", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Reservations.class)))})
     @GetMapping("/reservations")
     public List<ReservationsDTO> reservations() {
         return reservationsDao.findAll().stream().map(c -> new ReservationsDTO(c.getId(), c.getIdClient(), c.getIdVehicule(), c.getStartReservation(), c.getEndReservation(), c.getEstimatedKm(), c.getPriceReservation())).collect(Collectors.toList());
@@ -48,23 +48,61 @@ public class WebAppController {
 
 
     @Operation(summary = "Voir une reservation spécifique de la base de données", description = "Requête pour la récupération d'une reservation de la base de données")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Opération réussi", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Reservations.class))), @ApiResponse(responseCode = "405", description = "Échec de l'opération ", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{\"error\": \"Saisie invalide\"}")))})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Opération réussi", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Reservations.class))), @ApiResponse(responseCode = "405", description = "Échec de l'opération ", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ClientNotFindException.class)))})
     @RequestMapping(path = "/reservations/{id}", method = RequestMethod.GET)
     public List<ReservationsDTO> getReservations(@Parameter(description = "Identifiant de la reservation", required = true) @PathVariable(value = "id") int id) {
         try {
             return reservationsDao.findById(id).stream().map(c -> new ReservationsDTO(c.getId(), c.getIdClient(), c.getIdVehicule(), c.getStartReservation(), c.getEndReservation(), c.getEstimatedKm(), c.getPriceReservation())).collect(Collectors.toList());
         } catch (Exception exception) {
-            throw new RuntimeException(exception.getMessage());
+            throw new ClientNotFindException(id);
         }
     }
 
 
     @Operation(summary = "Crée une nouvelle reservation dans la base de données", description = "Requête pour crée/ajouter une reservation dans la base de données")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Opération réussi", content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{\n" + "    \"success\": true,\n" + "    \"message\": \"Votre reservation a été ajoutée !\"\n" + "}"))), @ApiResponse(responseCode = "405", description = "Échec de l'opération ", content = @Content(mediaType = "application/json", examples = {@ExampleObject(name = "Erreur générale", value = "{\n" + "    \"success\": false,\n" + "    \"message\": \"Votre reservation n'a pas été ajoutée !\"\n" + "}")}))})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Opération réussi", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ReservationAdd.class))), @ApiResponse(responseCode = "405", description = "Erreur métier",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = {
+                            @ExampleObject(
+                                    name = "Client introuvable",
+                                    value = """
+                                            {
+                                              "timestamp": "2025-11-06T15:00:00",
+                                              "status": 404,
+                                              "error": "Client introuvable",
+                                              "message": "Client not found with ID : 1"
+                                            }
+                                            """
+                            ),
+                            @ExampleObject(
+                                    name = "Client déjà réservé",
+                                    value = """
+                                            {
+                                              "timestamp": "2025-11-06T15:00:00",
+                                              "status": 404,
+                                              "error": "Client déjà réservé",
+                                              "message": "Ce client dispose déjà d'une réservation en cours"
+                                            }
+                                            """
+                            ),
+                            @ExampleObject(
+                                    name = "Véhicule déjà réservé",
+                                    value = """
+                                            {
+                                              "timestamp": "2025-11-06T15:00:00",
+                                              "status": 404,
+                                              "error": "Véhicule déjà réservé",
+                                              "message": "Le véhicule 12 est déjà réservé pour cette période"
+                                            }
+                                            """
+                            )
+                    }
+            )
+    )})
     @RequestMapping(value = "/reservations", method = RequestMethod.POST)
     public ResponseEntity<Map<String, Object>> addReservations(@Validated @RequestBody RequiredReservation informations) {
         try {
-            Map<String, Object> response = new HashMap<>();
             List<ClientDTO> clientVerification = reservationsService.requestClient(informations.getIdClient());
             if (!clientVerification.isEmpty()) {
                 ClientDTO client = clientVerification.getFirst();
@@ -78,8 +116,7 @@ public class WebAppController {
                                     int priceFinal = reservationsService.calculePriceFinal(vehicle, informations);
                                     if (priceFinal != 0) {
                                         reservationsService.createReservation(reservationsDao, client, vehicle, informations, priceFinal);
-                                        response.put("success", true);
-                                        response.put("message", "Votre reservations a été ajoutée !");
+                                        throw new ReservationAdd();
                                     } else {
                                         throw new VehicleTypeKnowName();
                                     }
@@ -101,13 +138,8 @@ public class WebAppController {
             } else {
                 throw new ClientNotFindException(informations.getIdClient());
             }
-            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "Votre reservations n'a pas été ajoutée !");
-            response.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            throw new ReservationNotAdd();
         }
     }
 
