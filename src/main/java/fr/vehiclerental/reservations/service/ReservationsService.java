@@ -1,83 +1,159 @@
 package fr.vehiclerental.reservations.service;
 
+import fr.vehiclerental.reservations.entity.ClientDTO;
+import fr.vehiclerental.reservations.entity.RequiredReservation;
 import fr.vehiclerental.reservations.entity.Reservations;
+import fr.vehiclerental.reservations.entity.VehicleDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.lang.reflect.Array;
-//import org.json.JSONArray;
-//import org.json.JSONObject;
 import java.time.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+@Slf4j
 @Service
 
 public class ReservationsService {
 
-    public Object requestClient(int idUser) {
+    /**
+     * Methode pour appeller l'api Client
+     *
+     * @param idUser Id du client demandé
+     * @return Retourne la liste du client
+     */
+    public List<ClientDTO> requestClient(int idUser) {
         RestTemplate restTemplate = new RestTemplate();
         String userRequest = "http://localhost:8081/clients/" + idUser;
-        Object response = restTemplate.getForObject(userRequest, Object.class);
+        ClientDTO[] response = restTemplate.getForObject(userRequest, ClientDTO[].class);
         if (response != null) {
-            return response;
+            return Arrays.asList(response);
         } else {
-            return new Object();
+            return new ArrayList<>();
         }
     }
 
-    public Object translateDate(Object data) {
-        //JSONArray jsonArray = new JSONArray(data.toString());
-        //JSONObject jsonObject = jsonArray.getJSONObject(0);
-        //return jsonObject;
-    }
-
+    /**
+     * Methode de vérification si le client peut reserver ou non
+     *
+     * @param birthdayUser  Date d'anniverssaire du client
+     * @param licenseNumber Permis du client
+     * @return Vrai ou faux
+     */
     public boolean canReserve(LocalDate birthdayUser, String licenseNumber) {
-        if ((LocalDate.now().getYear() - birthdayUser.getYear()) >= 18 && !licenseNumber.equals("")) {
+        if ((LocalDate.now().getYear() - birthdayUser.getYear()) >= 18 && !licenseNumber.isEmpty()) {
             return true;
         } else {
             return false;
         }
     }
 
-    public Object requestVehicle(int idVehicle) {
-        RestTemplate restTemplate = new RestTemplate();
-        String userRequest = "http://localhost:8082/vehicles/" + idVehicle;
-        Object response = restTemplate.getForObject(userRequest, Object.class);
-        if (response != null) {
-            return response;
-        } else {
-            return new Object();
-        }
-    }
-
-
-    public boolean requestYearClient(LocalDate yearClient, int horsePower) {
-        return true;
-        /*
-        RestTemplate restTemplate = new RestTemplate();
-        String userRequest = "http://localhost:8082/vehicles/" + idVehicle;
-        Object response = restTemplate.getForObject(userRequest, Object.class);
-        if (response != null) {
-            return response;
-        } else {
-            return new Object();
-        }
-         */
-    }
-
-
-
-    /*
-    public void createClient(String codeAlpha, ClientDao clientDao) {
-        Client newClient = new Client();
-        newClient.setFirstName("Sarah");
-        newClient.setLastName("rrere");
-        newClient.setNumber_license(codeAlpha);
-        newClient.setObtaining_license(2004);
-        newClient.setBirthday(LocalDate.of(2025, 12, 2));
-        clientDao.save(newClient);
-    }
-
+    /**
+     * Methode pour appeller l'api Vehicle
+     *
+     * @param idVehicle Id du vehicule demandé
+     * @return Retourne la liste de vehicule
      */
+    public List<VehicleDTO> requestVehicle(int idVehicle) {
+        RestTemplate restTemplate = new RestTemplate();
+        String userRequest = "http://localhost:8082/vehicles/" + idVehicle;
+        VehicleDTO[] response = restTemplate.getForObject(userRequest, VehicleDTO[].class);
+        if (response == null) {
+            return new ArrayList<>();
+        } else {
+            return Arrays.asList(response);
+        }
+    }
+
+    /**
+     * Methode de verification selon l'age du client et les cheveaux du vehicule
+     *
+     * @param birthdayClient Date de naissance du client
+     * @param horsePower     Chevaux du vehicule
+     * @return Vrai ou faux
+     */
+    public boolean requestYearClient(LocalDate birthdayClient, int horsePower) {
+        int now = LocalDate.now().getYear();
+        if (now - birthdayClient.getYear() < 21 && horsePower >= 8 || now - birthdayClient.getYear() > 21 && now - birthdayClient.getYear() < 25 && horsePower < 13) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * Methode de verifiation si le client a deja une reservation ou non
+     *
+     * @param idClient        id du client demandé
+     * @param reservationsDao Class DAO pour faire les requetes a la bdd
+     * @return
+     */
+    public boolean clientHaveAReservation(int idClient, ReservationsDao reservationsDao) {
+        if (reservationsDao.findByIdClient(idClient).isEmpty()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Methode pour le calcul du prix final
+     *
+     * @param vehicle             Informations du vehicule
+     * @param requiredReservation Class requiredReservation
+     * @return Renvoie le prix
+     */
+    public int calculePriceFinal(VehicleDTO vehicle, RequiredReservation requiredReservation) {
+        switch (vehicle.getType()) {
+            case "car":
+                return vehicle.getDefaultPrice() + vehicle.getPricePerKilometer() * requiredReservation.getEstimatedKm();
+            case "utility":
+                return (int) (vehicle.getDefaultPrice() + vehicle.getVolume() * 0.05 * vehicle.getPricePerKilometer() * requiredReservation.getEstimatedKm());
+            case "motorcycle":
+                return (int) (vehicle.getDefaultPrice() + vehicle.getCylinder() * 0.001 * vehicle.getPricePerKilometer() * requiredReservation.getEstimatedKm());
+            default:
+                return 0;
+        }
+    }
+
+    /**
+     * Methode de vérification si le vehicule a deja ete reserver selon des dates
+     *
+     * @param vehicle         Informations du vehicule
+     * @param newReservation  Information donnée depuis la requete
+     * @param reservationsDao Class DAO pour faire les requetes a la bdd
+     * @return Vrai ou faux
+     */
+    public boolean verificationVehiculeReservation(VehicleDTO vehicle, RequiredReservation newReservation, ReservationsDao reservationsDao) {
+        List<Reservations> vehicleFocus = reservationsDao.findByIdVehicule(vehicle.getId());
+        if (vehicleFocus.isEmpty()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Methode pour crée une reservation
+     *
+     * @param reservationsDao Class DAO pour faire les requetes a la bdd
+     * @param client          Information du client
+     * @param vehicle         Information du vehicule
+     * @param informations    Information donnée depuis la requete
+     * @param priceFinal      Prix final
+     */
+    public void createReservation(ReservationsDao reservationsDao, ClientDTO client, VehicleDTO vehicle, RequiredReservation informations, int priceFinal) {
+        Reservations newReservation = new Reservations();
+        newReservation.setIdClient(client.getId());
+        newReservation.setIdVehicule(vehicle.getId());
+        newReservation.setStartReservation(informations.getStartReservation());
+        newReservation.setEndReservation(informations.getEndReservation());
+        newReservation.setEstimatedKm(informations.getEstimatedKm());
+        newReservation.setPriceReservation(priceFinal);
+        reservationsDao.save(newReservation);
+    }
 }

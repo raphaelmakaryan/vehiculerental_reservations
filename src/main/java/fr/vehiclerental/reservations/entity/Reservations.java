@@ -32,6 +32,9 @@ public class Reservations {
     @Column(name = "estimated_km")
     private int estimatedKm;
 
+    @Column(name = "price_reservation")
+    private int priceReservation;
+
     public Reservations() {
         super();
     }
@@ -84,6 +87,14 @@ public class Reservations {
         this.estimatedKm = estimatedKm;
     }
 
+    public int getPriceReservation() {
+        return priceReservation;
+    }
+
+    public void setPriceReservation(int priceReservation) {
+        this.priceReservation = priceReservation;
+    }
+
     @Override
     public String toString() {
         return "Reservations{" +
@@ -93,6 +104,7 @@ public class Reservations {
                 ", startReservation=" + startReservation +
                 ", endReservation=" + endReservation +
                 ", estimatedKm=" + estimatedKm +
+                ", priceReservation=" + priceReservation +
                 '}';
     }
 }

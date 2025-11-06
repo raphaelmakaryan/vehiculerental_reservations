@@ -9,17 +9,19 @@ public class ReservationsDTO {
     private LocalDate startReservation;
     private LocalDate endReservation;
     private int estimatedKm;
+    private int priceReservation;
 
     public ReservationsDTO() {
     }
 
-    public ReservationsDTO(Integer id, int idClient, int idVehicule, LocalDate startReservation, LocalDate endReservation, int estimatedKm) {
+    public ReservationsDTO(Integer id, int idClient, int idVehicule, LocalDate startReservation, LocalDate endReservation, int estimatedKm, int priceReservation) {
         this.id = id;
         this.idClient = idClient;
         this.idVehicule = idVehicule;
         this.startReservation = startReservation;
         this.endReservation = endReservation;
         this.estimatedKm = estimatedKm;
+        this.priceReservation = priceReservation;
     }
 
     public void setId(Integer id) {
@@ -69,5 +71,13 @@ public class ReservationsDTO {
 
     public void setEstimatedKm(int estimatedKm) {
         this.estimatedKm = estimatedKm;
+    }
+
+    public int getPriceReservation() {
+        return priceReservation;
+    }
+
+    public void setPriceReservation(int priceReservation) {
+        this.priceReservation = priceReservation;
     }
 }

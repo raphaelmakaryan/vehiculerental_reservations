@@ -9,7 +9,14 @@ import java.util.List;
 @Repository
 public interface ReservationsDao extends JpaRepository<Reservations, Integer> {
     List<Reservations> findById(int id);
+
+    List<Reservations> findByIdClient(int idClient);
+
+    List<Reservations> findByIdVehicule(int idVehicule);
+
     List<Reservations> findAll();
+
     void delete(Reservations client);
+
     Reservations save(Reservations client);
 }
