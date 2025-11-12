@@ -20,7 +20,7 @@ public class Reservations {
     @Column(name = "id_client")
     private int idClient;
 
-    @Column(name = "idVehicule")
+    @Column(name = "id_vehicule")
     private int idVehicule;
 
     @Column(name = "start_reservation")
