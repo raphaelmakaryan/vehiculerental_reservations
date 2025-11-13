@@ -180,10 +180,8 @@ public class WebAppController {
         }
     }
 
-    /*
     @Operation(summary = "Voir toute les reservations de la base de données ", description = "Requête pour la récupération de toute les reservations de la base de données ")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Opération réussi", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Reservations.class)))})
-     */
     @GetMapping("/reservations/vehicle/{id}")
     public List<Reservations> reservationsVehicle(@Parameter(description = "Identifiant du véhicule", required = true) @PathVariable(value = "id") int idVehicle) {
         List<Reservations> response = reservationsDao.findByIdVehicule(idVehicle);
