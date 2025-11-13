@@ -1,9 +1,6 @@
 package fr.vehiclerental.reservations.service;
 
-import fr.vehiclerental.reservations.entity.ClientDTO;
-import fr.vehiclerental.reservations.entity.RequiredReservation;
-import fr.vehiclerental.reservations.entity.Reservations;
-import fr.vehiclerental.reservations.entity.VehicleDTO;
+import fr.vehiclerental.reservations.entity.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -186,8 +183,8 @@ public class ReservationsService {
 
     public boolean verifMaintenance(int idVehicle) {
         RestTemplate restTemplate = new RestTemplate();
-        String maintenanceRequest = "http://localhost:8084/vehicles/" + idVehicle;
-        VehicleDTO[] response = restTemplate.getForObject(maintenanceRequest, VehicleDTO[].class);
+        String maintenanceRequest = "http://localhost:8084/maintenance/vehicle/" + idVehicle;
+        MaintenanceDTO[] response = restTemplate.getForObject(maintenanceRequest, MaintenanceDTO[].class);
         if (response.length == 0) {
             return true;
         } else {

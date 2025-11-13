@@ -94,52 +94,49 @@ public class WebAppController {
     )})
     @RequestMapping(value = "/reservations", method = RequestMethod.POST)
     public ResponseEntity<Map<String, Object>> addReservations(@Validated @RequestBody RequiredReservation informations) {
-        try {
-            List<ClientDTO> clientVerification = reservationsService.requestClient(informations.getIdClient());
-            if (!clientVerification.isEmpty()) {
-                ClientDTO client = clientVerification.getFirst();
-                if (reservationsService.canReserve(client.getBirthday(), client.getNumberLicense())) {
-                    if (reservationsService.clientHaveAReservation(client.getId(), reservationsDao)) {
-                        List<VehicleDTO> vehiculeVerification = reservationsService.requestVehicle(informations.getIdVehicule());
-                        if (!vehiculeVerification.isEmpty()) {
-                            VehicleDTO vehicle = vehiculeVerification.getFirst();
-                            if (reservationsService.requestYearClient(client.getBirthday(), vehicle.getHorsePower())) {
-                                if (reservationsService.verifMaintenance(vehicle.getId())) {
-                                    if (reservationsService.verificationVehiculeReservation(vehicle, informations, reservationsDao)) {
-                                        int priceFinal = reservationsService.calculePriceFinal(vehicle, informations);
-                                        if (priceFinal != 0) {
-                                            Map<String, Object> response = new HashMap<>();
-                                            reservationsService.createReservation(reservationsDao, client, vehicle, informations, priceFinal);
-                                            response.put("success", true);
-                                            response.put("message", "Votre reservation a été ajoutée !");
-                                            return ResponseEntity.ok(response);
-                                        } else {
-                                            throw new VehicleTypeKnowName();
-                                        }
+        List<ClientDTO> clientVerification = reservationsService.requestClient(informations.getIdClient());
+        if (!clientVerification.isEmpty()) {
+            ClientDTO client = clientVerification.getFirst();
+            if (reservationsService.canReserve(client.getBirthday(), client.getNumberLicense())) {
+                if (reservationsService.clientHaveAReservation(client.getId(), reservationsDao)) {
+                    List<VehicleDTO> vehiculeVerification = reservationsService.requestVehicle(informations.getIdVehicule());
+                    if (!vehiculeVerification.isEmpty()) {
+                        VehicleDTO vehicle = vehiculeVerification.getFirst();
+                        if (reservationsService.requestYearClient(client.getBirthday(), vehicle.getHorsePower())) {
+                            if (reservationsService.verifMaintenance(vehicle.getId())) {
+                                if (reservationsService.verificationVehiculeReservation(vehicle, informations, reservationsDao)) {
+                                    int priceFinal = reservationsService.calculePriceFinal(vehicle, informations);
+                                    if (priceFinal != 0) {
+                                        Map<String, Object> response = new HashMap<>();
+                                        reservationsService.createReservation(reservationsDao, client, vehicle, informations, priceFinal);
+                                        response.put("success", true);
+                                        response.put("message", "Votre reservation a été ajoutée !");
+                                        return ResponseEntity.ok(response);
                                     } else {
-                                        throw new VehiculeAlreadyReservation();
+                                        throw new VehicleTypeKnowName();
                                     }
                                 } else {
-                                    throw new ReservationNotAdd();
+                                    throw new VehiculeAlreadyReservation();
                                 }
                             } else {
-                                throw new ClientAgeHorsepower();
+                                throw new ReservationNotAdd();
                             }
                         } else {
-                            throw new VehiculeNotFInd(informations.getIdVehicule());
+                            throw new ClientAgeHorsepower();
                         }
                     } else {
-                        throw new ClientAlreadyReservation();
+                        throw new VehiculeNotFInd(informations.getIdVehicule());
                     }
                 } else {
-                    throw new ClientNotLegalAgeOrLicense();
+                    throw new ClientAlreadyReservation();
                 }
             } else {
-                throw new ClientNotFindException(informations.getIdClient());
+                throw new ClientNotLegalAgeOrLicense();
             }
-        } catch (Exception e) {
-            throw new ReservationNotAdd();
+        } else {
+            throw new ClientNotFindException(informations.getIdClient());
         }
+
     }
 
 
