@@ -183,4 +183,15 @@ public class ReservationsService {
         findindReservation.setPriceReservation(reservationBodyRequest.getPriceReservation());
         reservationsDao.save(findindReservation);
     }
+
+    public boolean verifMaintenance(int idVehicle) {
+        RestTemplate restTemplate = new RestTemplate();
+        String maintenanceRequest = "http://localhost:8084/vehicles/" + idVehicle;
+        VehicleDTO[] response = restTemplate.getForObject(maintenanceRequest, VehicleDTO[].class);
+        if (response.length == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

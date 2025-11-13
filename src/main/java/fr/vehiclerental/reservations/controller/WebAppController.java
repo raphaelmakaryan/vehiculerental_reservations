@@ -104,19 +104,23 @@ public class WebAppController {
                         if (!vehiculeVerification.isEmpty()) {
                             VehicleDTO vehicle = vehiculeVerification.getFirst();
                             if (reservationsService.requestYearClient(client.getBirthday(), vehicle.getHorsePower())) {
-                                if (reservationsService.verificationVehiculeReservation(vehicle, informations, reservationsDao)) {
-                                    int priceFinal = reservationsService.calculePriceFinal(vehicle, informations);
-                                    if (priceFinal != 0) {
-                                        Map<String, Object> response = new HashMap<>();
-                                        reservationsService.createReservation(reservationsDao, client, vehicle, informations, priceFinal);
-                                        response.put("success", true);
-                                        response.put("message", "Votre reservation a été ajoutée !");
-                                        return ResponseEntity.ok(response);
+                                if (reservationsService.verifMaintenance(vehicle.getId())) {
+                                    if (reservationsService.verificationVehiculeReservation(vehicle, informations, reservationsDao)) {
+                                        int priceFinal = reservationsService.calculePriceFinal(vehicle, informations);
+                                        if (priceFinal != 0) {
+                                            Map<String, Object> response = new HashMap<>();
+                                            reservationsService.createReservation(reservationsDao, client, vehicle, informations, priceFinal);
+                                            response.put("success", true);
+                                            response.put("message", "Votre reservation a été ajoutée !");
+                                            return ResponseEntity.ok(response);
+                                        } else {
+                                            throw new VehicleTypeKnowName();
+                                        }
                                     } else {
-                                        throw new VehicleTypeKnowName();
+                                        throw new VehiculeAlreadyReservation();
                                     }
                                 } else {
-                                    throw new VehiculeAlreadyReservation();
+                                    throw new ReservationNotAdd();
                                 }
                             } else {
                                 throw new ClientAgeHorsepower();
