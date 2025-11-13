@@ -31,14 +31,6 @@ public class WebAppController {
         this.reservationsDao = reservationsDao;
     }
 
-
-    @Operation(summary = "Page d'accueil")
-    @RequestMapping("/")
-    public String index() {
-        return "Hello World";
-    }
-
-
     @Operation(summary = "Voir toute les reservations de la base de données ", description = "Requête pour la récupération de toute les reservations de la base de données ")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Opération réussi", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Reservations.class)))})
     @GetMapping("/reservations")
@@ -115,8 +107,11 @@ public class WebAppController {
                                 if (reservationsService.verificationVehiculeReservation(vehicle, informations, reservationsDao)) {
                                     int priceFinal = reservationsService.calculePriceFinal(vehicle, informations);
                                     if (priceFinal != 0) {
+                                        Map<String, Object> response = new HashMap<>();
                                         reservationsService.createReservation(reservationsDao, client, vehicle, informations, priceFinal);
-                                        throw new ReservationAdd();
+                                        response.put("success", true);
+                                        response.put("message", "Votre reservation a été ajoutée !");
+                                        return ResponseEntity.ok(response);
                                     } else {
                                         throw new VehicleTypeKnowName();
                                     }
@@ -182,6 +177,20 @@ public class WebAppController {
             response.put("success", true);
             response.put("message", "Votre reservations a été supprimé !");
             return ResponseEntity.ok(response);
+        }
+    }
+
+    /*
+    @Operation(summary = "Voir toute les reservations de la base de données ", description = "Requête pour la récupération de toute les reservations de la base de données ")
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Opération réussi", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Reservations.class)))})
+     */
+    @GetMapping("/reservations/vehicle/{id}")
+    public List<Reservations> reservationsVehicle(@Parameter(description = "Identifiant du véhicule", required = true) @PathVariable(value = "id") int idVehicle) {
+        List<Reservations> response = reservationsDao.findByIdVehicule(idVehicle);
+        if (response == null || response.isEmpty()) {
+            throw new VehiculeNotReservation();
+        } else {
+            return response;
         }
     }
 }

@@ -76,8 +76,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
     }
 
-    @ExceptionHandler(ReservationAdd.class)
-    public ResponseEntity<ErrorEntity> reservationAdd(ReservationAdd exception) {
+    @ExceptionHandler(VehiculeNotReservation.class)
+    public ResponseEntity<ErrorEntity> vehiculeNotReservation(VehiculeNotReservation exception) {
         ErrorEntity error = new ErrorEntity(true, LocalDateTime.now(), exception.getMessage(), HttpStatus.FOUND.value());
         return ResponseEntity.status(HttpStatus.OK.value()).body(error);
     }
