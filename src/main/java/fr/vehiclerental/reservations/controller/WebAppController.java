@@ -56,7 +56,9 @@ public class WebAppController {
     }
 
     @Operation(summary = "Crée une nouvelle reservation dans la base de données", description = "Requête pour crée/ajouter une reservation dans la base de données")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Opération réussi", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ReservationAdd.class))), @ApiResponse(responseCode = "405", description = "Erreur métier", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class), examples = {@ExampleObject(name = "Client introuvable", value = """
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Opération réussi", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ReservationAdd.class))),
+            @ApiResponse(responseCode = "405", description = "Erreur métier", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class),
+            examples = {@ExampleObject(name = "Client introuvable", value = """
             {
               "timestamp": "2025-11-06T15:00:00",
               "status": 404,
