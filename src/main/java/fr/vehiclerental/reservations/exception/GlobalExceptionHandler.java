@@ -79,6 +79,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(VehiculeNotReservation.class)
     public ResponseEntity<ErrorEntity> vehiculeNotReservation(VehiculeNotReservation exception) {
         ErrorEntity error = new ErrorEntity(false, LocalDateTime.now(), exception.getMessage(), HttpStatus.FOUND.value());
-        return ResponseEntity.status(HttpStatus.OK.value()).body(error);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(error);
     }
 }
