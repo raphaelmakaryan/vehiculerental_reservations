@@ -1,6 +1,7 @@
 package fr.vehiclerental.reservations.service;
 
 import fr.vehiclerental.reservations.entity.*;
+import fr.vehiclerental.reservations.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -45,12 +46,12 @@ public class ReservationsService {
         if ((LocalDate.now().getYear() - birthdayUser.getYear()) >= 18 && !licenseNumber.isEmpty()) {
             return true;
         } else {
-            return false;
+            throw new ClientNotLegalAgeOrLicense();
         }
     }
 
     /**
-     * Methode pour appeller l'api Vehicle
+     * Methode qui appellera l'api Vehicle
      *
      * @param idVehicle Id du vehicule demandé
      * @return Retourne la liste de vehicule
@@ -78,7 +79,7 @@ public class ReservationsService {
         if (now - birthdayClient.getYear() < 21 && horsePower >= 8 || now - birthdayClient.getYear() > 21 && now - birthdayClient.getYear() < 25 && horsePower < 13) {
             return false;
         } else {
-            return true;
+            throw new ClientAgeHorsepower();
         }
     }
 
@@ -93,7 +94,7 @@ public class ReservationsService {
         if (reservationsDao.findByIdClient(idClient).isEmpty()) {
             return true;
         } else {
-            return false;
+            throw new ClientAlreadyReservation();
         }
     }
 
@@ -136,12 +137,39 @@ public class ReservationsService {
                     !startWant.isAfter(endBooked) &&  // startWant <= endBooked
                             !endWant.isBefore(startBooked);   // endWant >= startBooked
             if (overlap) {
-                return false; // réservation impossible
+                throw new VehiculeAlreadyReservation();
             }
         }
         return true;
     }
 
+    /**
+     * Methode de vérification si le client existe
+     * @param clientRequest Information du client venant de la requete
+     * @return Renvoie le client ou une erreur
+     */
+    public ClientDTO clientVerification(RequiredReservation clientRequest) {
+        List<ClientDTO> client = this.requestClient(clientRequest.getIdClient());
+        if (!client.isEmpty()) {
+            return client.get(0);
+        } else {
+            throw new ClientNotFindException(clientRequest.getIdClient());
+        }
+    }
+
+    /**
+     * Methode de vérification si le véhicule existe
+     * @param vehicleRequest Information du véhicule venant de la requete
+     * @return Renvoie le vehicule ou une erreur
+     */
+    public VehicleDTO vehiculeVerification(RequiredReservation vehicleRequest) {
+        List<VehicleDTO> vehicule = this.requestVehicle(vehicleRequest.getIdVehicule());
+        if (!vehicule.isEmpty()) {
+            return vehicule.get(0);
+        } else {
+            throw new VehiculeNotFInd(vehicleRequest.getIdVehicule());
+        }
+    }
 
     /**
      * Methode pour crée une reservation
@@ -181,6 +209,11 @@ public class ReservationsService {
         reservationsDao.save(findindReservation);
     }
 
+    /**
+     * Methode de vérification si le véhicule est en entretien
+     * @param idVehicle Id du vehicule
+     * @return Vrai ou erreur
+     */
     public boolean verifMaintenance(int idVehicle) {
         RestTemplate restTemplate = new RestTemplate();
         String maintenanceRequest = "http://localhost:8084/maintenance/vehicle/" + idVehicle;
@@ -188,7 +221,7 @@ public class ReservationsService {
         if (response.length == 0) {
             return true;
         } else {
-            return false;
+            throw new ReservationNotAdd();
         }
     }
 }
