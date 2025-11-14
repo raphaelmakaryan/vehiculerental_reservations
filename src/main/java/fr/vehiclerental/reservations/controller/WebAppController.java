@@ -45,13 +45,13 @@ public class WebAppController {
     }
 
     @Operation(summary = "Voir une reservation spécifique de la base de données", description = "Requête pour la récupération d'une reservation de la base de données")
-    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Opération réussi", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Reservations.class)))})
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Opération réussi", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Reservations.class))), @ApiResponse(responseCode = "405", description = "Échec de l'opération ", content = @Content(mediaType = "application/json", examples = {@ExampleObject(name = "Erreur générale", value = "{\n" + "  \"localDateTime\": \"2025-11-03T08:25:00\",\n" + "  \"message\": \"Reservation not found with ID : 1 \",\n" + "  \"status\": 404\n" + "}")}))})
     @RequestMapping(path = "/reservations/{id}", method = RequestMethod.GET)
     public List<ReservationsDTO> getReservations(@Parameter(description = "Identifiant de la reservation", required = true) @PathVariable(value = "id") int id) {
         try {
             return reservationsDao.findById(id).stream().map(c -> new ReservationsDTO(c.getId(), c.getIdClient(), c.getIdVehicule(), c.getStartReservation(), c.getEndReservation(), c.getEstimatedKm(), c.getPriceReservation())).collect(Collectors.toList());
         } catch (Exception exception) {
-            throw new ClientNotFindException(id);
+            throw new ReservationNotFindException(id);
         }
     }
 
