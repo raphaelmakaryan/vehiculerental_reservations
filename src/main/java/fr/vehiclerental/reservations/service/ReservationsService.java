@@ -76,7 +76,7 @@ public class ReservationsService {
      */
     public boolean requestYearClient(LocalDate birthdayClient, int horsePower) {
         int now = LocalDate.now().getYear();
-        if (now - birthdayClient.getYear() < 21 && horsePower >= 8 || now - birthdayClient.getYear() > 21 && now - birthdayClient.getYear() < 25 && horsePower < 13) {
+        if (now - birthdayClient.getYear() < 21 && horsePower >= 8 || now - birthdayClient.getYear() > 21 && now - birthdayClient.getYear() < 25 && horsePower < 13 || now - birthdayClient.getYear() > 25) {
             return false;
         } else {
             throw new ClientAgeHorsepower();
@@ -145,6 +145,7 @@ public class ReservationsService {
 
     /**
      * Methode de vérification si le client existe
+     *
      * @param clientRequest Information du client venant de la requete
      * @return Renvoie le client ou une erreur
      */
@@ -159,6 +160,7 @@ public class ReservationsService {
 
     /**
      * Methode de vérification si le véhicule existe
+     *
      * @param vehicleRequest Information du véhicule venant de la requete
      * @return Renvoie le vehicule ou une erreur
      */
@@ -211,6 +213,7 @@ public class ReservationsService {
 
     /**
      * Methode de vérification si le véhicule est en entretien
+     *
      * @param idVehicle Id du vehicule
      * @return Vrai ou erreur
      */
