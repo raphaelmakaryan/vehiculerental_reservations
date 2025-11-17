@@ -3,20 +3,47 @@ package fr.vehiclerental.reservations.service;
 import fr.vehiclerental.reservations.entity.*;
 import fr.vehiclerental.reservations.exception.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 
 public class ReservationsService {
+
+    @Autowired
+    ReservationsDao reservationsDao;
+
+    /**
+     * Méthode pour récuperer toute les reservations
+     *
+     * @return Listes des reservations
+     */
+    public List<ReservationsDTO> allReservation() {
+        return reservationsDao.findAll().stream().map(c -> new ReservationsDTO(c.getId(), c.getIdClient(), c.getIdVehicule(), c.getStartReservation(), c.getEndReservation(), c.getEstimatedKm(), c.getPriceReservation())).collect(Collectors.toList());
+    }
+
+    /**
+     * Méthode pour récuperer une reservation précis
+     *
+     * @param id id de la reservation
+     * @return Information de la reservation
+     */
+    public List<ReservationsDTO> oneReservation(int id) {
+        try {
+            return reservationsDao.findById(id).stream().map(c -> new ReservationsDTO(c.getId(), c.getIdClient(), c.getIdVehicule(), c.getStartReservation(), c.getEndReservation(), c.getEstimatedKm(), c.getPriceReservation())).collect(Collectors.toList());
+        } catch (Exception exception) {
+            throw new ReservationNotFindException(id);
+        }
+    }
+
 
     /**
      * Methode pour appeller l'api Client
@@ -193,6 +220,31 @@ public class ReservationsService {
         reservationsDao.save(newReservation);
     }
 
+    /**
+     * Méthode de vérification pour crée une reservation
+     * @param informations Information de la requete
+     * @return Réponse
+     */
+    public Map<String, Object> createReservationService(RequiredReservation informations) {
+        ClientDTO client = this.clientVerification(informations);
+        this.canReserve(client.getBirthday(), client.getNumberLicense());
+        this.clientHaveAReservation(client.getId(), reservationsDao);
+        VehicleDTO vehicle = this.vehiculeVerification(informations);
+        this.requestYearClient(client.getBirthday(), vehicle.getHorsePower());
+        this.verifMaintenance(vehicle.getId());
+        this.verificationVehiculeReservation(vehicle, informations, reservationsDao);
+        int priceFinal = this.calculePriceFinal(vehicle, informations);
+        if (priceFinal != 0) {
+            Map<String, Object> response = new HashMap<>();
+            this.createReservation(reservationsDao, client, vehicle, informations, priceFinal);
+            response.put("success", true);
+            response.put("message", "Votre reservation a été ajoutée !");
+            return response;
+        } else {
+            throw new VehicleTypeKnowName();
+        }
+    }
+
 
     /**
      * Methode pour modifier une reservation
@@ -209,6 +261,47 @@ public class ReservationsService {
         findindReservation.setEstimatedKm(reservationBodyRequest.getEstimatedKm());
         findindReservation.setPriceReservation(reservationBodyRequest.getPriceReservation());
         reservationsDao.save(findindReservation);
+    }
+
+    /**
+     * Méthode de vérrification pour modifier une reservation
+     * @param idUser id du client
+     * @param reservationsRequest Information de la requete
+     * @return Reponse
+     */
+    public Map<String, Object> editReservationService(int idUser, Reservations reservationsRequest) {
+        try {
+            List<Reservations> reservations = reservationsDao.findById(idUser);
+            if (reservations == null || reservations.isEmpty()) {
+                throw new ReservationNotFindException(idUser);
+            } else {
+                Map<String, Object> response = new HashMap<>();
+                this.editReservation(reservations.getFirst(), reservationsRequest, reservationsDao);
+                response.put("success", true);
+                response.put("message", "Votre reservation a été modifié !");
+                return response;
+            }
+        } catch (Exception e) {
+            throw new BadRequestException(e.getMessage());
+        }
+    }
+
+    /**
+     * Méthode de verification pour supprimer une reservation
+     * @param idUSer id du client
+     * @return Réponse
+     */
+    public Map<String, Object> deleteReservationService(int idUSer) {
+        List<Reservations> reservations = reservationsDao.findById(idUSer);
+        if (reservations == null || reservations.isEmpty()) {
+            throw new ReservationNotFindException(idUSer);
+        } else {
+            reservationsDao.delete(reservations.getFirst());
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Votre reservations a été supprimé !");
+            return response;
+        }
     }
 
     /**
